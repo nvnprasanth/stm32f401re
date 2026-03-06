@@ -1,0 +1,3 @@
+../Core/Src/rtos_exercise/task_example.c:53:5:create_demo_tasks	8	static
+../Core/Src/rtos_exercise/task_example.c:72:6:StartDefaultTask	56	static
+../Core/Src/rtos_exercise/task_example.c:91:6:StartTask02	56	static
