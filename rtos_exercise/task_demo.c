@@ -19,16 +19,15 @@
 #include "cmsis_os.h"
 #include <string.h>
 #include <stddef.h>
+#include "shell.h"
+#include "led.h"
 
 /* Private includes ----------------------------------------------------------*/
 
-
-extern UART_HandleTypeDef huart2;
-
-/* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
+/* Definitions for myTask01 */
+osThreadId_t myTask01Handle;
+const osThreadAttr_t myTask01_attributes = {
+  .name = "myTask01",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
@@ -41,10 +40,34 @@ const osThreadAttr_t myTask02_attributes = {
 };
 
 /* Private function prototypes -----------------------------------------------*/
-void StartDefaultTask(void *argument);
+void StartTask01(void *argument);
 void StartTask02(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
+
+char task_buf[512];  // adjust size depending on number of tasks
+
+static void printTaskStatus(void) {
+    vTaskList(task_buf); // fills buffer with task info
+    printf("Task Name\tState\tPrio\tStack\tNum\n");
+    printf("%s\n", task_buf);
+    printf("State: R=Running/Ready, B=Blocked, S=Suspended, X=eXecuting\n");
+}
+
+static int task_cmd_handler(void *arg) {
+    if (strcmp(arg, "resume") == 0) {
+        osThreadResume(myTask01Handle);
+        osThreadResume(myTask02Handle);
+    } else if (strcmp(arg, "suspend") == 0) {
+        osThreadSuspend(myTask01Handle);
+        osThreadSuspend(myTask02Handle);
+    } else if (strcmp(arg, "status") == 0) {
+        printTaskStatus();
+    } else {
+        printf("Invalid task command. Use: task resume|suspend|status\n");
+    }
+    return 0;
+}
 
 /**
   * @brief  The application entry point.
@@ -54,39 +77,39 @@ int create_demo_tasks(void)
 {
 
   /* Create the thread(s) */
-  /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  /* creation of myTask01 */
+  myTask01Handle = osThreadNew(StartTask01, NULL, &myTask01_attributes);
 
   /* creation of myTask02 */
   myTask02Handle = osThreadNew(StartTask02, NULL, &myTask02_attributes);
-
+  return register_command(CMD_TASK, "task", task_cmd_handler, "Control tasks: task resume|suspend|status");
+  return 0;
 }
 
-/* USER CODE BEGIN Header_StartDefaultTask */
+/* USER CODE BEGIN Header_StartTask01 */
 /**
-  * @brief  Function implementing the defaultTask thread.
+  * @brief  Function implementing the Task01 thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
+/* USER CODE END Header_StartmyTask01 */
+void StartTask01(void *argument)
 {
   /* Infinite loop */
   int count = 0;
-  char buf[32] = {};
+  printf("Task01 suspending itself\n");
+  osThreadSuspend(osThreadGetId());
   for(;;)
   {
-	  sprintf(buf, "Task1 count %05d\n\r", ++count);
-	  HAL_UART_Transmit(&huart2, buf, strlen(buf), 100);
       osDelay(1000);
 #if ENABLE_ONBOARD_LED
-      led_toggle();
+      green_led_toggle();
 #endif
   }
 }
 
 /**
-* @brief Function implementing the myTask02 thread.
+* @brief Function implementing the Task02 thread.
 * @param argument: Not used
 * @retval None
 */
@@ -95,11 +118,11 @@ void StartTask02(void *argument)
 {
   /* Infinite loop */
   int count = 0;
-  char buf[32] = {};
+  printf("Task02 suspending itself\n");
+  osThreadSuspend(osThreadGetId());
   for(;;)
   {
-	sprintf(buf, "Task2 count %05d\n\r", ++count);
-	HAL_UART_Transmit(&huart2, buf, strlen(buf), 100);
+	  //printf( "Task2 count %05d\n", ++count);
     osDelay(1000);
   }
 }

@@ -5,6 +5,7 @@
 #define ENABLE_ONBOARD_LED 1
 
 void led_gpio_init(void);
-void led_toggle(void);
+void green_led(GPIO_PinState state);
+void green_led_toggle(void);
 
 #endif

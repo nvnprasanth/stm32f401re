@@ -29,7 +29,9 @@
 #include <time.h>
 #include <sys/time.h>
 #include <sys/times.h>
+#include "stm32f4xx_hal.h"
 
+extern UART_HandleTypeDef huart2;
 
 /* Variables */
 extern int __io_putchar(int ch) __attribute__((weak));
@@ -66,26 +68,29 @@ void _exit (int status)
 
 __attribute__((weak)) int _read(int file, char *ptr, int len)
 {
-  (void)file;
-  int DataIdx;
+    uint8_t ch;
+    HAL_StatusTypeDef status;
 
-  for (DataIdx = 0; DataIdx < len; DataIdx++)
-  {
-    *ptr++ = __io_getchar();
-  }
+    status = HAL_UART_Receive(&huart2, &ch, 1, HAL_MAX_DELAY);
+    if (status == HAL_OK) {
+        // Echo back the character
+        HAL_UART_Transmit(&huart2, &ch, 1, HAL_MAX_DELAY);
 
-  return len;
+        // Store into buffer
+        *ptr = (char)ch;
+        return 1;
+    }
+    return 0;
 }
 
 __attribute__((weak)) int _write(int file, char *ptr, int len)
 {
   (void)file;
   int DataIdx;
+  char * eol = "\r"; 
 
-  for (DataIdx = 0; DataIdx < len; DataIdx++)
-  {
-    __io_putchar(*ptr++);
-  }
+  HAL_UART_Transmit(&huart2, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+  HAL_UART_Transmit(&huart2, eol, strlen(eol), HAL_MAX_DELAY);
   return len;
 }
 
