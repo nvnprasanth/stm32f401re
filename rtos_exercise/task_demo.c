@@ -79,6 +79,9 @@ void StartDefaultTask(void *argument)
 	  sprintf(buf, "Task1 count %05d\n\r", ++count);
 	  HAL_UART_Transmit(&huart2, buf, strlen(buf), 100);
       osDelay(1000);
+#if ENABLE_ONBOARD_LED
+      led_toggle();
+#endif
   }
 }
 
