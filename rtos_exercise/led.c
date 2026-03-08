@@ -8,6 +8,8 @@
 #include "shell.h"
 
 static GPIO_InitTypeDef  GPIO_InitStruct;
+void green_led_toggle(void);
+void green_led(GPIO_PinState state);
 
 static int led_cmd_handler(void *arg) {
     if (strcmp(arg, "on") == 0) {
