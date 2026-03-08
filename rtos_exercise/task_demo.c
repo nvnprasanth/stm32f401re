@@ -19,6 +19,8 @@
 #include "cmsis_os.h"
 #include <string.h>
 #include <stddef.h>
+#include "led.h"
+#include <stdio.h>
 
 /* Private includes ----------------------------------------------------------*/
 
